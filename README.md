@@ -1,2 +1,2 @@
 # CBlackJack
-A console-based game of BlackJack, player against computer.
+A console-based game of BlackJack, player(s) against computer.
