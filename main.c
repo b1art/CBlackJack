@@ -1,10 +1,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <termios.h>
+// #include <termios.h> ??
 #include <unistd.h>
 #include <ctype.h>
-#define MAX_TIME 2 //2000 for windows
+
+#define MAX_GAMBLERS 7
+#define MAX_TIME 2000 //2000 for windows
+
 void displayMenu();
 void startGame();
 void displayRules();
@@ -24,6 +27,7 @@ void saveScore(int sum, int i, int score[]){
 int main() {
 
 }
+
 int getch (void) //only for mac
 {
     int ch;
@@ -38,6 +42,7 @@ int getch (void) //only for mac
 
     return ch;
 }
+
 void displayMenu(){
     char option, answer;
     int valid;
@@ -79,7 +84,30 @@ void displayMenu(){
     }
 }
 
-void startGame(){}
+void startGame(){
+    int points, sum, gamblers, i, score[MAX_GAMBLERS+1];
+    char option, card;
+
+    clearScreen();
+
+    do{
+        printf("Enter the total number of gamblers to join the table (max. %d): ", MAX_GAMBLERS);
+        scanf("%d", &gamblers);
+        fflush(stdin);
+
+        clearScreen();
+    }while(gamblers < 1 || gamblers > MAX_GAMBLERS);
+
+    for(i = 0; i < gamblers; i++){
+        sum = 0;
+        callGambler(points, sum, card, i, score);
+    }
+
+    sum = 0;
+    callDealer(points, sum, card, i, score);
+
+    displayScore(score, gamblers);
+}
 
 void displayRules(){
 
@@ -104,7 +132,37 @@ void displayRules(){
     displayMenu();
 }
 
-void callDealer(int points, int sum, char card, int i, int score[]){}
+void callDealer(int points, int sum, char card, int i, int score[]){
+    printf("There you go, DEALER! The house can still win.\n\n");
+    Sleep(1000);
+
+    dealCard(&card, &points, &sum);
+    Sleep(MAX_TIME);
+
+    dealCard(&card, &points, &sum);
+    Sleep(MAX_TIME);
+
+    while(sum < 17){
+        printf("They have hit!\n\n");
+        Sleep(MAX_TIME);
+
+        dealCard(&card, &points, &sum);
+        Sleep(MAX_TIME);
+    }
+
+    if(sum >= 21){
+        if(sum > 21)
+            printf("DEALER have busted...");
+        else
+            printf("BLACKJACK!");
+    }
+    else{
+        printf("DEALER have stood...");
+    }
+
+    Sleep(MAX_TIME);
+    saveScore(sum, i, score);
+}
 
 void callGambler(int points, int sum, char card, int i, int score[]){
     char answer;
@@ -147,10 +205,6 @@ void callGambler(int points, int sum, char card, int i, int score[]){
     }
 
     saveScore(sum, i, score);
-
-
-
-
 }
 
 void dealCard(char *card, int *points, int *sum){
