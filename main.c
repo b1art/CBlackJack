@@ -1,46 +1,20 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
-// #include <termios.h> ??
-#include <unistd.h>
 #include <ctype.h>
+#include <conio.h>
+#include <time.h>
+#include <string.h>
+#include <windows.h>
 
 #define MAX_GAMBLERS 7
-#define MAX_TIME 2000 //2000 for windows
+#define MAX_TIME 2000
 
-void displayMenu();
-void startGame();
-void displayRules();
+int main(){
+    srand(time(NULL));
 
-void callGambler(int points, int sum, char card, int i, int score[]);
-void callDealer(int points, int sum, char card, int i, int score[]);
+    displayMenu();
 
-void saveScore(int sum, int i, int score[]);
-void displayScore(int score[], int gamblers);
-
-void dealCard(char *card, int *points, int *sum);
-void chooseCardSuit(char *suit);
-void clearScreen();
-void saveScore(int sum, int i, int score[]){
-    score[i] = sum;
-}
-int main() {
-
-}
-
-int getch (void) //only for mac
-{
-    int ch;
-    struct termios oldt, newt;
-
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
-    newt.c_lflag &= ~(ICANON|ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-    ch = getchar();
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-
-    return ch;
+    return 0;
 }
 
 void displayMenu(){
@@ -50,6 +24,7 @@ void displayMenu(){
     clearScreen();
 
     printf("# Blackjack # \n\n");
+
     printf("1) Start\n");
     printf("2) Rules\n");
     printf("3) Exit\n\n");
@@ -66,7 +41,7 @@ void displayMenu(){
     switch(option){
         case '1':
             startGame();
-            sleep(MAX_TIME); //Sleep for windows
+            Sleep(MAX_TIME);
 
             printf("\nPRESS ENTER TO RETURN TO THE MENU");
 
@@ -93,7 +68,6 @@ void startGame(){
     do{
         printf("Enter the total number of gamblers to join the table (max. %d): ", MAX_GAMBLERS);
         scanf("%d", &gamblers);
-        fflush(stdin);
 
         clearScreen();
     }while(gamblers < 1 || gamblers > MAX_GAMBLERS);
@@ -110,7 +84,6 @@ void startGame(){
 }
 
 void displayRules(){
-
     int answer;
 
     clearScreen();
@@ -130,6 +103,49 @@ void displayRules(){
     }while(answer != 13);
 
     displayMenu();
+}
+
+void callGambler(int points, int sum, char card, int i, int score[]){
+    char answer;
+
+    printf("GAMBLER %d\n\n", i+1);
+    Sleep(1000);
+
+    dealCard(&card, &points, &sum);
+    Sleep(MAX_TIME);
+
+    while(sum < 21){
+        dealCard(&card, &points, &sum);
+        Sleep(MAX_TIME);
+
+        if(sum >= 21){
+            if(sum > 21)
+                printf("You have busted...");
+            else
+                printf("BLACKJACK!");
+
+            Sleep(MAX_TIME);
+            clearScreen();
+            break;
+        }
+
+        printf("Hit or Stand? H/S");
+
+        do{
+            answer = toupper(getch());
+        }while(answer != 'H' && answer != 'S');
+
+        if(answer == 'S'){
+            printf("\n\nYou have stood...");
+            Sleep(MAX_TIME);
+            clearScreen();
+            break;
+        }
+
+        printf("\n\n");
+    }
+
+    saveScore(sum, i, score);
 }
 
 void callDealer(int points, int sum, char card, int i, int score[]){
@@ -164,47 +180,32 @@ void callDealer(int points, int sum, char card, int i, int score[]){
     saveScore(sum, i, score);
 }
 
-void callGambler(int points, int sum, char card, int i, int score[]){
-    char answer;
+void saveScore(int sum, int i, int score[]){
+    score[i] = sum;
+}
 
-    printf("GAMBLER %d\n\n", i+1);
-    sleep(1000);
+void displayScore(int score[], int gamblers){
+    int i;
 
-    dealCard(&card, &points, &sum);
-    sleep(MAX_TIME);
+    clearScreen();
 
-    while(sum < 21){
-        dealCard(&card, &points, &sum);
-        sleep(MAX_TIME);
+    printf("# Final score #\n\n");
 
-        if(sum >= 21){
-            if(sum > 21)
-                printf("You have busted...");
-            else
-                printf("BLACKJACK!");
-
-            sleep(MAX_TIME);
-            clearScreen();
-            break;
-        }
-
-        printf("Hit or Stand? H/S");
-
-        do{
-            answer = toupper(getch());
-        }while(answer != 'H' && answer != 'S');
-
-        if(answer == 'S'){
-            printf("\n\nYou have stood...");
-            sleep(MAX_TIME);
-            clearScreen();
-            break;
-        }
-
-        printf("\n\n");
+    for(i = 0; i < gamblers; i++){
+        if(score[i] > 21)
+            printf("GAMBLER %d: %d points BUSTED\n", i+1, score[i]);
+        else if(score[i] == 21)
+            printf("GAMBLER %d: %d points BLACKJACK\n", i+1, score[i]);
+        else
+            printf("GAMBLER %d: %d points\n", i+1, score[i]);
     }
 
-    saveScore(sum, i, score);
+    if(score[i] > 21)
+        printf("DEALER   : %d points BUSTED\n\n", score[i]);
+    else if(score[i] == 21)
+        printf("DEALER   : %d points BLACKJACK\n\n", score[i]);
+    else
+        printf("DEALER   : %d points\n\n", score[i]);
 }
 
 void dealCard(char *card, int *points, int *sum){
@@ -228,20 +229,7 @@ void dealCard(char *card, int *points, int *sum){
 
     *sum += *points;
 
-    chooseCardSuit(suit);
-
-    if(*card == '0')
-        printf("10 of %s\n", suit);
-    else
-        printf("%c of %s\n", *card, suit);
-
-    printf("Accumulated score: %i points\n\n", *sum);
-}
-
-void chooseCardSuit(char suit[]){
     char suits[] = {'d', 's', 'h', 'c'};
-    int aux;
-
     aux = rand()%4;
 
     switch(suits[aux]){
@@ -257,6 +245,14 @@ void chooseCardSuit(char suit[]){
         case 'c':
             strcpy(suit, "Clubs");
     }
+
+    if(*card == '0')
+        printf("10 of %s\n", suit);
+    else
+        printf("%c of %s\n", *card, suit);
+
+    printf("Accumulated score: %i points\n\n", *sum);
+
 }
 
 void clearScreen(){
