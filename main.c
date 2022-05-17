@@ -60,7 +60,7 @@ void displayMenu(){
 }
 
 void startGame(){
-    int points, sum, gamblers, i, score[MAX_GAMBLERS+1];
+    int points, sum, gamblers, i, score[MAX_GAMBLERS+1], array_cards[52][2], given_cards = 0;
     char option, card;
 
     clearScreen();
@@ -210,29 +210,32 @@ void displayScore(int score[], int gamblers){
 
 void dealCard(char *card, int *points, int *sum){
     char cards[] = {'A', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K'}, suit[8];
-    int aux;
+    int value, color;
+    do {
+        value = rand() % 13;
+        color = rand() % 4;
+    }while(!contains(array_cards,[value, color]));
+    array_cards[cards_given][0] = value;
+    array_cards[cards_given][1] = color;
+    cards_given++;
+    *card = cards[value];
 
-    aux = rand()%13;
-
-    *card = cards[aux];
-
-    if(aux == 0){
+    if(value == 0){
         *points = 1;
     }
     else
-    if(aux >= 9){
+    if(value >= 9){
         *points = 10;
     }
     else{
-        *points = aux+1;
+        *points = value+1;
     }
 
     *sum += *points;
 
     char suits[] = {'d', 's', 'h', 'c'};
-    aux = rand()%4;
 
-    switch(suits[aux]){
+    switch(suits[color]){
         case 'd':
             strcpy(suit, "Diamonds");
             break;
@@ -255,6 +258,14 @@ void dealCard(char *card, int *points, int *sum){
 
 }
 
+int contains(int given, int element){
+        int i;
+        for(i = 0; i < sizeof(given[]); i++){
+            if(given[i] == element) return 1;
+        }
+        return 0;
+
+}
 void clearScreen(){
     system("cls");
 }
