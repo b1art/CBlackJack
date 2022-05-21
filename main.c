@@ -63,6 +63,11 @@ void startGame(){
     int points, sum, gamblers, i, score[MAX_GAMBLERS+1], array_cards[52][2], given_cards = 0;
     char option, card;
 
+    for (i = 0; i < 52; i++) {
+        array_cards[i][0] = -1;
+        array_cards[i][1] = -1;
+    }
+
     clearScreen();
 
     do{
@@ -74,11 +79,11 @@ void startGame(){
 
     for(i = 0; i < gamblers; i++){
         sum = 0;
-        callGambler(points, sum, card, i, score);
+        callGambler(points, sum, card, i, score, array_cards, given_cards);
     }
 
     sum = 0;
-    callDealer(points, sum, card, i, score);
+    callDealer(points, sum, card, i, score, array_cards, given_cards);
 
     displayScore(score, gamblers);
 }
@@ -105,17 +110,17 @@ void displayRules(){
     displayMenu();
 }
 
-void callGambler(int points, int sum, char card, int i, int score[]){
+void callGambler(int points, int sum, char card, int i, int score[], int array_cards[][2], int given_cards){
     char answer;
 
     printf("GAMBLER %d\n\n", i+1);
     Sleep(1000);
 
-    dealCard(&card, &points, &sum);
+    dealCard(&card, &points, &sum, array_cards, given_cards);
     Sleep(MAX_TIME);
 
     while(sum < 21){
-        dealCard(&card, &points, &sum);
+        dealCard(&card, &points, &sum, array_cards, given_cards);
         Sleep(MAX_TIME);
 
         if(sum >= 21){
@@ -148,21 +153,21 @@ void callGambler(int points, int sum, char card, int i, int score[]){
     saveScore(sum, i, score);
 }
 
-void callDealer(int points, int sum, char card, int i, int score[]){
+void callDealer(int points, int sum, char card, int i, int score[], int array_cards[][2], int given_cards){
     printf("There you go, DEALER! The house can still win.\n\n");
     Sleep(1000);
 
-    dealCard(&card, &points, &sum);
+    dealCard(&card, &points, &sum, array_cards, given_cards);
     Sleep(MAX_TIME);
 
-    dealCard(&card, &points, &sum);
+    dealCard(&card, &points, &sum, array_cards, given_cards);
     Sleep(MAX_TIME);
 
     while(sum < 17){
         printf("They have hit!\n\n");
         Sleep(MAX_TIME);
 
-        dealCard(&card, &points, &sum);
+        dealCard(&card, &points, &sum, array_cards, given_cards);
         Sleep(MAX_TIME);
     }
 
@@ -208,16 +213,18 @@ void displayScore(int score[], int gamblers){
         printf("DEALER   : %d points\n\n", score[i]);
 }
 
-void dealCard(char *card, int *points, int *sum){
+void dealCard(char *card, int *points, int *sum, int array_cards[][2], int given_cards){
     char cards[] = {'A', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K'}, suit[8];
     int value, color;
     do {
         value = rand() % 13;
         color = rand() % 4;
-    }while(!contains(array_cards,[value, color]));
-    array_cards[cards_given][0] = value;
-    array_cards[cards_given][1] = color;
-    cards_given++;
+    }while(contains(array_cards, value, color));
+
+    array_cards[given_cards][0] = value;
+    array_cards[given_cards][1] = color;
+    given_cards++;
+
     *card = cards[value];
 
     if(value == 0){
@@ -258,14 +265,16 @@ void dealCard(char *card, int *points, int *sum){
 
 }
 
-int contains(int given, int element){
-        int i;
-        for(i = 0; i < sizeof(given[]); i++){
-            if(given[i] == element) return 1;
+int contains(int arr[][2], int el1, int el2){
+    int i;
+    for(i = 0; i < 52; i++){
+        if(arr[i][0] == el1) {
+            if(arr[i][1] == el2) {return 1;}
         }
-        return 0;
-
+    }
+    return 0;
 }
+
 void clearScreen(){
     system("cls");
 }
