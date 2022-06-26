@@ -13,3 +13,7 @@ Game menu
 
 Game rules
 ![rules](bj_rules.png)
+
+
+Gameplay
+![gameplay](demo.gif)
